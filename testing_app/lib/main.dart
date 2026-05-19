@@ -1,70 +1,81 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MathverseApp());
 }
 
+// ---------------- ADMINS ----------------
+const Map<String, String> admins = {
+  "Hossein_1997": "1234567",
+  "AmirAli_1997": "1234567",
+};
+
+// ---------------- APP ----------------
 class MathverseApp extends StatelessWidget {
   const MathverseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MainMenu(),
+      title: "Mathverse School PRO",
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const LoginPage(),
     );
   }
 }
 
-class MainMenu extends StatelessWidget {
-  const MainMenu({super.key});
+// ---------------- LOGIN ----------------
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final username = TextEditingController();
+  final password = TextEditingController();
+
+  void login() {
+    final u = username.text.trim();
+    final p = password.text.trim();
+
+    if (admins[u] == p) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminPanel()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const StudentPanel()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Mathverse 🚀")),
-      body: Center(
+      appBar: AppBar(title: const Text("Login")),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            const Text(
-              "MATHVERSE",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            TextField(
+              controller: username,
+              decoration: const InputDecoration(labelText: "Username"),
             ),
-
-            const SizedBox(height: 30),
-
-            ElevatedButton(
-              child: const Text("🎮 Start Game"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const GamePage()),
-                );
-              },
+            TextField(
+              controller: password,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "Password"),
             ),
-
+            const SizedBox(height: 20),
             ElevatedButton(
-              child: const Text("🏆 Best Score"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ScorePage()),
-                );
-              },
-            ),
-
-            ElevatedButton(
-              child: const Text("ℹ About"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AboutPage()),
-                );
-              },
+              onPressed: login,
+              child: const Text("Login"),
             ),
           ],
         ),
@@ -73,149 +84,168 @@ class MainMenu extends StatelessWidget {
   }
 }
 
-class GamePage extends StatefulWidget {
-  const GamePage({super.key});
-
-  @override
-  State<GamePage> createState() => _GamePageState();
-}
-
-class _GamePageState extends State<GamePage> {
-  int score = 0;
-  int level = 1;
-  int bestScore = 0;
-
-  late int a;
-  late int b;
-  late int correctAnswer;
-
-  List<int> options = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadBest();
-    generateQuestion();
-  }
-
-  Future<void> loadBest() async {
-    final prefs = await SharedPreferences.getInstance();
-    bestScore = prefs.getInt('bestScore') ?? 0;
-    setState(() {});
-  }
-
-  Future<void> saveBest() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('bestScore', bestScore);
-  }
-
-  void generateQuestion() {
-    final random = Random();
-    int max = 10 + (level * 5);
-
-    a = random.nextInt(max) + 1;
-    b = random.nextInt(max) + 1;
-    correctAnswer = a + b;
-
-    options = [
-      correctAnswer,
-      correctAnswer + 1,
-      correctAnswer - 1,
-      correctAnswer + 2,
-    ];
-
-    options.shuffle();
-    setState(() {});
-  }
-
-  void check(int value) async {
-    if (value == correctAnswer) {
-      score++;
-
-      if (score % 3 == 0) level++;
-
-      if (score > bestScore) {
-        bestScore = score;
-        await saveBest();
-      }
-    }
-
-    generateQuestion();
-  }
+// ---------------- STUDENT PANEL ----------------
+class StudentPanel extends StatelessWidget {
+  const StudentPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Game 🎮")),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      appBar: AppBar(title: const Text("Student 🎓")),
+      body: ListView(
         children: [
-
-          Text("Score: $score", style: const TextStyle(fontSize: 22)),
-          Text("Level: $level", style: const TextStyle(fontSize: 20)),
-          Text("Best: $bestScore", style: const TextStyle(fontSize: 18)),
-
-          const SizedBox(height: 30),
-
-          Text(
-            "$a + $b = ?",
-            style: const TextStyle(fontSize: 30),
+          ListTile(
+            title: const Text("🏆 Leaderboard"),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+              );
+            },
           ),
-
-          const SizedBox(height: 20),
-
-          ...options.map((e) {
-            return ElevatedButton(
-              onPressed: () => check(e),
-              child: Text(e.toString()),
-            );
-          }),
+          ListTile(
+            title: const Text("📚 Assignments"),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AssignmentPage()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text("💬 Feedback"),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FeedbackPage()),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 }
 
-class ScorePage extends StatelessWidget {
-  const ScorePage({super.key});
+// ---------------- DATA ----------------
+List<Map<String, dynamic>> students = [
+  {"name": "Ali", "score": 95},
+  {"name": "Sara", "score": 88},
+  {"name": "Reza", "score": 76},
+];
 
-  Future<int> getBest() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('bestScore') ?? 0;
-  }
+List<String> assignments = [
+  "Math Homework",
+  "Science Project",
+  "English Essay",
+];
+
+List<String> feedbacks = [];
+
+// ---------------- LEADERBOARD ----------------
+class LeaderboardPage extends StatelessWidget {
+  const LeaderboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final sorted = [...students];
+    sorted.sort((a, b) => b["score"].compareTo(a["score"]));
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Best Score 🏆")),
-      body: Center(
-        child: FutureBuilder<int>(
-          future: getBest(),
-          builder: (context, snapshot) {
-            final score = snapshot.data ?? 0;
-            return Text(
-              "Best Score: $score",
-              style: const TextStyle(fontSize: 28),
-            );
-          },
-        ),
+      appBar: AppBar(title: const Text("Leaderboard 🏆")),
+      body: ListView.builder(
+        itemCount: sorted.length,
+        itemBuilder: (context, i) {
+          return ListTile(
+            leading: Text("#${i + 1}"),
+            title: Text(sorted[i]["name"]),
+            trailing: Text("${sorted[i]["score"]} ⭐"),
+          );
+        },
       ),
     );
   }
 }
 
-class AboutPage extends StatelessWidget {
-  const AboutPage({super.key});
+// ---------------- ASSIGNMENTS ----------------
+class AssignmentPage extends StatelessWidget {
+  const AssignmentPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("About ℹ")),
-      body: const Center(
+      appBar: AppBar(title: const Text("Assignments 📚")),
+      body: ListView.builder(
+        itemCount: assignments.length,
+        itemBuilder: (context, i) {
+          return ListTile(
+            leading: const Icon(Icons.book),
+            title: Text(assignments[i]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ---------------- FEEDBACK ----------------
+class FeedbackPage extends StatefulWidget {
+  const FeedbackPage({super.key});
+
+  @override
+  State<FeedbackPage> createState() => _FeedbackPageState();
+}
+
+class _FeedbackPageState extends State<FeedbackPage> {
+  final controller = TextEditingController();
+
+  void send() {
+    if (controller.text.trim().isEmpty) return;
+
+    setState(() {
+      feedbacks.add(controller.text.trim());
+      controller.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Feedback 💬")),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: TextField(controller: controller),
+          ),
+          ElevatedButton(
+            onPressed: send,
+            child: const Text("Send"),
+          ),
+          Expanded(
+            child: ListView(
+              children: feedbacks
+                  .map((f) => ListTile(title: Text(f)))
+                  .toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------- ADMIN ----------------
+class AdminPanel extends StatelessWidget {
+  const AdminPanel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
         child: Text(
-          "Mathverse 🚀\nA simple math learning game",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 20),
+          "Admin Panel 👑",
+          style: TextStyle(fontSize: 22),
         ),
       ),
     );
